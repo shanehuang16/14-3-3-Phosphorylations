@@ -2,36 +2,52 @@
 ## Modelling ##
 ###############
 
-## Read in data
-phos <- read_csv('phos_cleaned.csv')
-
 ## Libraries
 library(tidyverse)
 library(caret)
+library(MLmetrics)
 library(DataExplorer)
+
+## Read in data
+phos <- read_csv('phos_cleaned.csv')
+
+## Dummy Variables
+IVTrans <- dummyVars(Response~.-SiteNum-Set, data=phos)
+phos <- predict(IVTrans, newdata=phos)  %>% as.data.frame() %>%
+  bind_cols(., phos %>% select(SiteNum, Set, Response))
+
+# Set factors
+phos <- phos %>% mutate_at(c('Set','Amino.AcidS','Amino.AcidT','Response'), funs(factor(.)))
 
 ## Split train and test
 phos_train <- phos %>% filter(Set == 'train')
 phos_test <- phos %>% filter(Set == 'test')
 
+## Set up F1 metric
+f1 <- function(data, lev = NULL, model = NULL) {
+  f1_val <- F1_Score(y_pred = data$pred, y_true = data$obs, positive = 1)
+  c(F1 = f1_val)
+}
 
 ## XGBTree Model
 train.control=trainControl(method="repeatedcv", number=10, repeats=3,
-                          summaryFunction = prSummary)
+                          summaryFunction = f1)
 
-tunegrid = expand.grid(nrounds = seq(10,50,length.out = 4),
-                       max_depth = 1:5,
-                       eta = seq(0.1,0.4,0.1),
-                       gamma = 0,
-                       colsample_bytree = 0.6,
-                       min_child_weight = 1:3,
-                       subsample = 0.5)
+tunegrid = expand.grid(
+                        nrounds = seq(from = 50, to = 1000, by = 50),
+                        eta = 0.025,
+                        max_depth = 2,
+                        gamma = 0,
+                        colsample_bytree = c(0.4, 0.6, 0.8, 1.0),
+                        min_child_weight = 3,
+                        subsample = c(0.5, 0.75, 1.0)
+                       )
 
 xgb_model <- train(form=Response~.,
                data = (phos_train %>% select(-Set, -SiteNum)),
                method = "xgbTree",
                preProcess = c("center", "scale"),
-               metric = "F",
+               metric = "F1",
                trControl = train.control,
                tuneGrid = tunegrid
                )
