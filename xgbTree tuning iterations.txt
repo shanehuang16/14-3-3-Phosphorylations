@@ -1,0 +1,64 @@
+# First Round (nrounds, eta, max_depth)
+nrounds = seq(from = 200, to = 1000, by = 50),
+eta = c(0.025, 0.05, 0.1, 0.3),
+max_depth = c(2, 3, 4, 5, 6),
+gamma = 0,
+colsample_bytree = 1,
+min_child_weight = 1,
+subsample = 1
+
+xgb_model$bestTune
+   nrounds max_depth   eta gamma colsample_bytree min_child_weight subsample
+24     500         3 0.025     0                1                1         1
+
+# Second Round (nrounds, max_depth, min_child_weight)
+nrounds = seq(from = 50, to = 1000, by = 50),
+eta = 0.025,
+max_depth = c(2, 3, 4),
+gamma = 0,
+colsample_bytree = 1,
+min_child_weight = c(1,2,3,4),
+subsample = 1
+
+xgb_model$bestTune
+   nrounds max_depth   eta gamma colsample_bytree min_child_weight subsample
+55     750         2 0.025     0                1                3         1
+
+# Third Round (column and row sampling)
+nrounds = seq(from = 50, to = 1000, by = 50),
+eta = 0.025,
+max_depth = 2,
+gamma = 0,
+colsample_bytree = c(0.4, 0.6, 0.8, 1.0),
+min_child_weight = 3,
+subsample = c(0.5, 0.75, 1.0)
+
+xgb_model$bestTune
+    nrounds max_depth   eta gamma colsample_bytree min_child_weight subsample
+211     550         2 0.025     0                1                3      0.75
+
+# Fourth Round (gamma)
+nrounds = seq(from = 50, to = 1000, by = 50),
+eta = 0.025,
+max_depth = 2,
+gamma = c(0, 0.05, 0.1, 0.5, 0.7, 0.9, 1.0),
+colsample_bytree = 1,
+min_child_weight = 3,
+subsample = 0.75
+
+xgb_model$bestTune
+   nrounds max_depth   eta gamma colsample_bytree min_child_weight subsample
+10     500         2 0.025     0                1                3      0.75
+
+# Fifth Round (eta)
+nrounds = seq(from = 50, to = 1000, by = 50),
+eta = c(0.01, 0.015, 0.025, 0.05, 0.1),
+max_depth = 2,
+gamma = 0,
+colsample_bytree = 1,
+min_child_weight = 3,
+subsample = 0.75
+
+xgb_model$bestTune
+   nrounds max_depth   eta gamma colsample_bytree min_child_weight subsample
+52     600         2 0.025     0                1                3      0.75
