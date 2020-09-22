@@ -35,12 +35,12 @@ train.control=trainControl(method="repeatedcv", number=10, repeats=3,
 
 tunegrid = expand.grid(
                         nrounds = seq(from = 50, to = 1000, by = 50),
-                        eta = 0.025,
+                        eta = c(0.01, 0.015, 0.025, 0.05, 0.1),
                         max_depth = 2,
                         gamma = 0,
-                        colsample_bytree = c(0.4, 0.6, 0.8, 1.0),
+                        colsample_bytree = 1,
                         min_child_weight = 3,
-                        subsample = c(0.5, 0.75, 1.0)
+                        subsample = 0.75
                        )
 
 xgb_model <- train(form=Response~.,
