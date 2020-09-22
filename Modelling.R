@@ -34,12 +34,12 @@ train.control=trainControl(method="repeatedcv", number=10, repeats=3,
                           summaryFunction = f1)
 
 tunegrid = expand.grid(
-                        nrounds = seq(from = 50, to = 1000, by = 50),
-                        eta = c(0.01, 0.015, 0.025, 0.05, 0.1),
+                        nrounds = seq(from = 50, to = 1500, by = 50),
+                        eta = 0.025,
                         max_depth = 2,
                         gamma = 0,
                         colsample_bytree = 1,
-                        min_child_weight = 3,
+                        min_child_weight = 1:3,
                         subsample = 0.75
                        )
 
