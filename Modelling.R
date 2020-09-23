@@ -41,14 +41,14 @@ tunegrid = expand.grid(
                         max_depth = 2,
                         gamma = 0,
                         colsample_bytree = 1,
-                        min_child_weight = 1:3,
+                        min_child_weight = 2,
                         subsample = 0.75
                        )
 
 xgb_model <- train(form=Response~.,
                data = (phos_train %>% select(-Set, -SiteNum)),
                method = "xgbTree",
-               preProcess = c("center", "scale"),
+               preProcess = c("center", "scale", "nzv"),
                metric = "F1",
                trControl = train.control,
                tuneGrid = tunegrid
@@ -64,7 +64,7 @@ out <- data.frame(Id=phos_test$SiteNum, Predicted=preds)
 write_csv(out, "xgb-preds.csv")
 
 ##
-## Random Forest Model
+## Random Forest Model (using "ranger")
 ##
 rf.train.control=trainControl(method="repeatedcv", number=10, repeats=3,
                           summaryFunction = f1)
@@ -85,6 +85,32 @@ rf_model <- train(form=Response~.,
                trControl = rf.train.control,
                tuneGrid = rf.tunegrid
                )
+beepr::beep(sound=5)
+
+rf_model$bestTune
+print(rf_model)
+plot(rf_model)
+
+preds <- predict(rf_model, phos_test)
+out <- data.frame(Id=phos_test$SiteNum, Predicted=preds)
+write_csv(out, "rf-preds.csv")
+
+##
+## Random Forest Model (using "rf")
+##
+rf.train.control=trainControl(method="repeatedcv", number=10, repeats=3,
+                          summaryFunction = f1)
+
+
+rf_model <- train(form=Response~.,
+                 data = (phos_train %>% select(-Set, -SiteNum)),
+                 method = "rf",
+                 preProcess = c("center", "scale", "nzv"),
+                 metric = "F1",
+                 trControl = rf.train.control,
+                 tuneGrid = expand.grid(mtry = 1:5),
+                 ntree=500
+                 )
 beepr::beep(sound=5)
 
 rf_model$bestTune
