@@ -29,7 +29,9 @@ f1 <- function(data, lev = NULL, model = NULL) {
   c(F1 = f1_val)
 }
 
+##
 ## XGBTree Model
+##
 train.control=trainControl(method="repeatedcv", number=10, repeats=3,
                           summaryFunction = f1)
 
@@ -60,3 +62,35 @@ plot(xgb_model)
 preds <- predict(xgb_model, phos_test)
 out <- data.frame(Id=phos_test$SiteNum, Predicted=preds)
 write_csv(out, "xgb-preds.csv")
+
+##
+## Random Forest Model
+##
+rf.train.control=trainControl(method="repeatedcv", number=10, repeats=3,
+                          summaryFunction = f1)
+
+
+rf.tunegrid <- expand.grid(
+  .mtry = 3,
+  .splitrule = "gini",
+  .min.node.size = 7
+)
+
+set.seed(122)
+rf_model <- train(form=Response~.,
+               data = (phos_train %>% select(-Set, -SiteNum)),
+               method = "ranger",
+               preProcess = c("center", "scale", "nzv"),
+               metric = "F1",
+               trControl = rf.train.control,
+               tuneGrid = rf.tunegrid
+               )
+beepr::beep(sound=5)
+
+rf_model$bestTune
+print(rf_model)
+plot(rf_model)
+
+preds <- predict(rf_model, phos_test)
+out <- data.frame(Id=phos_test$SiteNum, Predicted=preds)
+write_csv(out, "rf-preds.csv")
